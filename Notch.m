@@ -1,4 +1,7 @@
-classdef Notch
+% Nicholas Fajardo
+% RBE 595 - Advanced Surgical Robotics
+
+classdef Notch < handle
     
     properties (GetAccess = public, SetAccess = immutable)
         Height
