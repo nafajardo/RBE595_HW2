@@ -36,6 +36,26 @@ classdef Wrist
         function obj = setBaseLength(obj, baseLength)
             obj.baseLength = baseLength;
         end
+        
+        function obj = FwKin(obj, q)
+            % FwKin calculates the set of forward kinematics transformation
+            % matrices needed to represent the wrist
+            % q is the set of actuator variables
+            deltaL = q(1, 1);
+            alpha = q(1, 2);
+            tau = q(1, 3);
+            
+            transMatrices = [];
+            
+            % Add the transformation matrix of a base length translation
+            % among the Z
+            tBase = [0, 0, 0, 0;
+                     0, 0, 0, 0;
+                     0, 0, 0, obj.baseLength;
+                     0, 0, 0, 1];
+            
+            transMatrices = [transMatrices, tBase];
+        end
     end
 end
 
