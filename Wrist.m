@@ -59,15 +59,14 @@ classdef Wrist
             
             transMatrices = [transMatrices, tBase];
             
-            % neutral bending plane displacement from notch frame
-            y = nbpLoc(obj);
-            
             % Populates the transMatrices list with the matrices
             for index = size(obj.notches):-1:1
                 % Grabbing notch (assumes list order of tip to beginning)
                 notch = obj.notches(1, index);
                 
                 % Converting actuator space to configuration space
+                % neutral bending plane displacement from notch frame
+                y = nbpLoc(notch);
                 k = deltaL/(notch.Height * ((obj.InnerDiameter/2) + y) - deltaL * y);
                 s = notch.Height/(1 + y * k);
                 
@@ -100,9 +99,9 @@ classdef Wrist
                         0, 0, 0, 1];
         end
         
-        function y = nbpLoc(obj)
-            phi_o = 2 * acos(((innerDiameter/2 + outerDiameter/2) - (obj.OuterDiameter))/(obj.OuterDiameter/2));
-            phi_i = 2 * acos(((innerDiameter/2 + outerDiameter/2) - (obj.InnerDiameter))/(obj.InnerDiameter/2));
+        function y = nbpLoc(obj, notch)
+            phi_o = 2 * acos((notch.width - (obj.OuterDiameter))/(obj.OuterDiameter/2));
+            phi_i = 2 * acos((notch.width - (obj.InnerDiameter))/(obj.InnerDiameter/2));
             y_o = (4 * (outerDiameter/2) * ((sin(.5 * phi_o))^3))/(3 * (phi_o - sin(phi_o)));
             y_i = (4 * (innerDiameter/2) * ((sin(.5 * phi_i))^3))/(3 * (phi_i - sin(phi_i)));
             A_o = (((outerDiameter/2)^2) * (phi_o - sin(phi_o)))/2;
