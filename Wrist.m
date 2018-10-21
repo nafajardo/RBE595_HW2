@@ -73,11 +73,28 @@ classdef Wrist < handle
                 k = deltaL/(notch.Height * ((obj.InnerDiameter/2) + y) - deltaL * y);
                 s = notch.Height/(1 + y * k);
                 
-                % Calculating reference frame with gathered variables
-                T_Notch = [1, 0, 0, 0;
-                           0, cos(k*s), -sin(k*s), (cos(k*s) - 1)/k;
-                           0, sin(k*s),  cos(k*s), sin(k*s)/k;
-                           0, 0, 0, 1];
+                currentAngle = (notch.Height/(1 + (y * k))) * k;
+                maxAngle = (notch.Height/((obj.OuterDiameter/2) + y));
+                
+                if abs(currentAngle) > abs(maxAngle)
+                    disp("Current tendon displacement (" + currentAngle + ") surpasses maximum angle (" + maxAngle + ")!");
+                end
+                
+                T_Notch = zeros(4, 4);
+                % Handles the case when there is no curvature
+                if(k ~= 0)
+                    % Calculating reference frame with gathered variables
+                    T_Notch = [1, 0, 0, 0;
+                               0, cos(k*s), -sin(k*s), (cos(k*s) - 1)/k;
+                               0, sin(k*s),  cos(k*s), sin(k*s)/k;
+                               0, 0, 0, 1];
+                else
+                    % Calculating reference frame with gathered variables
+                    T_Notch = [1, 0, 0, 0;
+                               0, cos(k*s), -sin(k*s), 0;
+                               0, sin(k*s),  cos(k*s), s;
+                               0, 0, 0, 1];
+                end
                 
                 transMatrices(:, :, size(transMatrices, 3) + 1) = T_Notch;
                 
@@ -92,7 +109,14 @@ classdef Wrist < handle
                 end
             end
             
-            disp("Total Frames for FwKin of wrist found: " + size(transMatrices, 3))
+            % disp("Total Frames for FwKin of wrist found: " + size(transMatrices, 3))
+        end
+        
+        % Returns the max angle a wrist can form with homogeneous wrist
+        function theta = maxAngleHomogeneous(obj)
+            sampleNotch = obj.notches(1, 1);
+            h = sampleNotch.Height;
+            theta = size(obj.notches, 2)*(h/((obj.OuterDiameter/2) + obj.nbpLoc(sampleNotch)));
         end
         
         function T_Matrix = fsTransMatrix(rotZ, curvature, length)
@@ -111,6 +135,28 @@ classdef Wrist < handle
             A_i = (((obj.InnerDiameter/2)^2) * (phi_i - sin(phi_i)))/2;
             
             y = (y_o * A_o - y_i * A_i)/(A_o - A_i);
+        end
+        
+        function strain = calcMaxStrain(obj, q)
+            % Extracts the actuator variables
+            deltaL = q(1, 1);
+            % alpha = q(1, 2);
+            % tau = q(1, 3);
+            
+            notch = obj.notches(1, 1);
+            
+            y = obj.nbpLoc(notch);
+            k = deltaL/(notch.Height * ((obj.InnerDiameter/2) + y) - deltaL * y);
+            % s = notch.Height/(1 + y * k);
+            
+            strain_Inner = (k * ((obj.InnerDiameter/2) - y))/(1 + (y * k));
+            strain_Outer = (k * ((obj.OuterDiameter/2) - y))/(1 + (y * k));
+            
+            strain = max(strain_Inner, strain_Outer);
+            
+            if strain > 0.08
+                disp ("Calculated strain for tendon displacement of " + deltaL + "exceeds maximum strain limit of 8%!")
+            end
         end
     end
 end

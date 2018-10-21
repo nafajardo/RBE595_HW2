@@ -2,7 +2,6 @@
 % RBE 595 - Advanced Surgical Robotics
 
 clc
-
 try
     OuterDiameter = 1.8;
     InnerDiameter = 1.6;
@@ -24,13 +23,16 @@ try
     d_to_rad = pi/180;
 
     configurations = [0, 0, 0;
-                      1, 0, 0;
-                      5, 0, 0;
-                      5, 20 * d_to_rad, 0;
-                      5, 90 * d_to_rad, 0;
-                      5, 90 * d_to_rad, 5];
+                      .1, 0, 0;
+                      .5, 0, 0;
+                      .5, 20 * d_to_rad, 0;
+                      .5, 90 * d_to_rad, 0;
+                      .5, 90 * d_to_rad, 5];
 
     points = [];
+    
+    disp("Max angle this wrist can assume with homogeneous wrist config (radians): " + wrist.maxAngleHomogeneous)
+    disp("Max angle this wrist can assume with homogeneous wrist config (degrees): " + (wrist.maxAngleHomogeneous * (1/d_to_rad)))
     
     fig = figure;
     for index = 1:1:size(configurations, 1)
@@ -38,17 +40,22 @@ try
         T_Matrices = wrist.FwKin(q);
         points = pointsExtraction(T_Matrices);
         
+        strain = wrist.calcMaxStrain(q);
+        disp("Max Strain induced by tendon displacement: " + q(1, 1) + ": " + int32(strain * 100) + "%.");
+        
         fig;
         subplot(2, 3, index);
         axis equal;
         hold on;
         grid on;
-        title("Plot of Robot in Configuration Q" + index);
-        xlabel('X');
-        ylabel('Y');
-        zlabel('Z');
-        plot3(points(:, 1), points(:, 2), points(:, 3), 'r');
-        
+        view([1, 1, 1])
+        title("Plot of Robot with configuration: [ delta L = " + q(1, 1) + " mm, alpha = " + int32(q(1, 2) * (1/d_to_rad)) + " degrees, tau = " + q(1, 3) + " mm].");
+        xlabel('X (mm)');
+        ylabel('Y (mm)');
+        zlabel('Z (mm)');
+        plot3(points(1, :), points(2, :), points(3, :));
+        scatter3(points(1, 1), points(2, 1), points(3, 1), 'r', 'filled');
+        scatter3(points(1, size(points, 2)), points(2, size(points, 2)), points(3, size(points, 2)), 'g', 'filled');
     end
 catch
     disp("Something Went Wrong");
