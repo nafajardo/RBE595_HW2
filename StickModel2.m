@@ -10,10 +10,11 @@ nHeight = 1;
 nWidth = 1.6;
 nDist = 1;
 orientation = 0;
+orientation2 = pi;
 notch1 = Notch(nHeight, nWidth, orientation, nDist);
 notch2 = Notch(nHeight, nWidth, orientation, nDist);
-notch3 = Notch(nHeight, nWidth, orientation, nDist);
-notch4 = Notch(nHeight, nWidth, orientation, nDist);
+notch3 = Notch(nHeight, nWidth, orientation2, nDist);
+notch4 = Notch(nHeight, nWidth, orientation2, nDist);
 
 wrist = Wrist(InnerDiameter, OuterDiameter);
 
@@ -24,21 +25,32 @@ wrist.addNotch(notch4);
 
 d_to_rad = pi/180;
 
-configurations = [0, 0, 0;
-                  .1, 0, 0;
-                  .5, 0, 0;
-                  .5, 20 * d_to_rad, 0;
-                  .5, 90 * d_to_rad, 0;
-                  .5, 90 * d_to_rad, 5];
+tendon_displacements = [0, 0;
+                        0.1, 0.1;
+                        0.2, 0.2
+                        0.4, 0.4
+                        0.6, 0.6
+                        0.8, 0.8];
+
+configurations = [0, 0;
+                  0, 0;
+                  0, 0;
+                  0, 0;
+                  0, 0;
+                  0, 0];
 
 % disp("Max angle wrist can assume (radians): " + wrist.maxAngleHomogeneous)
 disp("Max angle wrist can assume (degrees): " + int32(wrist.maxAngleHomogeneous * (1/d_to_rad)))
 
 fig = figure;
 for index = 1:1:size(configurations, 1)
+    tl = tendon_displacements(index, :);
     q = configurations(index, :);
-    disp ("Configuration being assumed: " + mat2str(q));
-    T_Matrices = wrist.FwKin(q);
+    disp(" ");
+    disp ("Configuration being assumed: deltaL vector " + mat2str(tl) + " alpha and tau " + mat2str(q));
+    T_Matrices = wrist.FwKin2(tl, q);
+    
+    
     points = pointsExtraction(T_Matrices);
 
     fig;
@@ -47,7 +59,7 @@ for index = 1:1:size(configurations, 1)
     hold on;
     grid on;
     view([1, 1, 1])
-    title("Robot configuration: [ delta L = " + q(1, 1) + " mm, alpha = " + int32(q(1, 2) * (1/d_to_rad)) + " degrees, tau = " + q(1, 3) + " mm].");
+    title("Robot configuration: [delta L = " + mat2str(tl(1, :)) + " mm, alpha = " + int32(q(1, 1) * (1/d_to_rad)) + " degrees, tau = " + q(1, 2) + " mm].");
     xlabel('X (mm)');
     ylabel('Y (mm)');
     zlabel('Z (mm)');
