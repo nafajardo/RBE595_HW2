@@ -1,5 +1,6 @@
 % Nicholas Fajardo
 % RBE 595 - Advanced Surgical Robotics
+% StickModelSpiral represents a dexterous robotic manipulator where each notch increases in height, therefore forming a spiral shape
 
 clc
 clear all

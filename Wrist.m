@@ -1,21 +1,28 @@
 % Nicholas Fajardo
 % RBE 595 - Advanced Surgical Robotics
+% Wrist object is able to represent a notched wrist
+% One can create this class and call FwKin and FwKin 2 to get transformation matrices to represent certain configurations of a custom wrist
+% See Notch help for details on what a Notch can represent
 
 classdef Wrist < handle
-    
+    %% Wrist Properties
     % Inner and Outer tube diameter
     properties (GetAccess = public, SetAccess = immutable)
+        % InnerDiameter represents the inner diameter of the tube
+        % OuterDiameter represents the outer diameter of the tube
         InnerDiameter
         OuterDiameter
     end
     
-    % Notches in the wrist
     properties (GetAccess = public, SetAccess = private)
+        % notches represents the notches in the wrist (ordered from tip to beginning by default)
+        % baseLength represents the length from the base of the dexterous wrist to the first notch
         notches
         baseLength
     end
     
     methods
+        %% Class Construction
         % Constructor
         function obj = Wrist(innerDiameter, outerDiameter)
             obj.InnerDiameter = innerDiameter;
@@ -36,19 +43,6 @@ classdef Wrist < handle
             else
                 obj.notches = [obj.notches, notch];
             end
-        end
-        
-        % Returns a sorted list of notch orientation values in the wrist (no repeats)
-        function variance = notchVariance(obj)
-            variance = [];
-            for notchIndex = 1:size(obj.notches, 2)
-                orientation = obj.notches(1, notchIndex).Orientation;
-                if ~any(variance(:) == orientation)
-                    variance = [variance, orientation];
-                end
-            end
-            
-            variance = sort(variance);
         end
         
         % Sets a base length if appicable
@@ -78,7 +72,6 @@ classdef Wrist < handle
             
             % Populates the transMatrices list with the matrices
             for index = size(obj.notches, 2):-1:1
-                %% Actuator Parameters to Frenet Serret Parameters Conversion
                 % Grabbing notch (assumes list order of tip to beginning)
                 notch = obj.notches(1, index);
                 
@@ -88,7 +81,6 @@ classdef Wrist < handle
                 k = deltaL/(notch.Height * ((obj.InnerDiameter/2) + y) - deltaL * y);
                 s = notch.Height/(1 + y * k);
                 
-                %% Strain and Angle Calculations
                 % Printing warnings if strain and/or max angle is surpassed
                 % NOTE: material is assumed to be NiTi
                 strain = obj.calcMaxStrain(y, k, deltaL);
@@ -103,7 +95,6 @@ classdef Wrist < handle
                     disp("Current tendon displacement (" + currentAngle + ") surpasses maximum angle (" + maxAngle + ")!");
                 end
                 
-                %% Transformation Matrices Calculations
                 T_Notch = zeros(4, 4);
                 % Handles the case when there is no curvature
                 if(k ~= 0)
@@ -189,7 +180,7 @@ classdef Wrist < handle
                 k = deltaL/(notch.Height * ((obj.InnerDiameter/2) + y) - deltaL * y);
                 s = notch.Height/(1 + y * k);
                 
-                %% Strain and Angle Calculations
+                
                 % Printing warnings if strain and/or max angle is surpassed
                 % NOTE: material is assumed to be NiTi
                 strain = obj.calcMaxStrain(y, k, deltaL);
@@ -198,13 +189,6 @@ classdef Wrist < handle
                     disp ("Calculated strain for tendon displacement of " + deltaL + " exceeds maximum strain limit of 8%!")
                 end
                 
-                currentAngle = (notch.Height/(1 + (y * k))) * k;
-                maxAngle = (notch.Height/((obj.OuterDiameter/2) + y));
-                if abs(currentAngle) > abs(maxAngle)
-                    disp("Current tendon displacement (" + currentAngle + ") surpasses maximum angle (" + maxAngle + ")!");
-                end
-                
-                %% Transformation Matrices Calculations
                 T_Notch = zeros(4, 4);
                 % Handles the case when there is no curvature
                 if(k ~= 0)
@@ -237,6 +221,7 @@ classdef Wrist < handle
             % disp("Total Frames for FwKin of wrist found: " + size(transMatrices, 3))
         end
         
+        %% Helper Functions
         % Returns the max angle a wrist can form with homogeneous wrist
         function theta = maxAngleHomogeneous(obj)
             sampleNotch = obj.notches(1, 1);
@@ -267,6 +252,19 @@ classdef Wrist < handle
             strain_Outer = (k * ((obj.OuterDiameter/2) - y))/(1 + (y * k));
             
             strain = max(strain_Inner, strain_Outer);
+        end
+        
+        % Returns a sorted list of notch orientation values in the wrist (no repeats)
+        function variance = notchVariance(obj)
+            variance = [];
+            for notchIndex = 1:size(obj.notches, 2)
+                orientation = obj.notches(1, notchIndex).Orientation;
+                if ~any(variance(:) == orientation)
+                    variance = [variance, orientation];
+                end
+            end
+            
+            variance = sort(variance);
         end
     end
 end

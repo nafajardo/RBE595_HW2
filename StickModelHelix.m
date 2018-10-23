@@ -1,5 +1,6 @@
 % Nicholas Fajardo
 % RBE 595 - Advanced Surgical Robotics
+% StickModelHelix represents a Helix shape for a robotic manipulator, where each of the 8 notches varies in orientation by a magnitude of 90 degrees
 
 clc
 clear all
