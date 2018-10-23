@@ -38,6 +38,7 @@ disp("Max angle wrist can assume (degrees): " + int32(wrist.maxAngleHomogeneous 
 fig = figure;
 for index = 1:1:size(configurations, 1)
     q = configurations(index, :);
+    disp(" ");
     disp ("Configuration being assumed: " + mat2str(q));
     T_Matrices = wrist.FwKin(q);
     points = pointsExtraction(T_Matrices);

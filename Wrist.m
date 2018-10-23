@@ -21,6 +21,7 @@ classdef Wrist < handle
         baseLength
     end
     
+    %% Wrist Methods
     methods
         %% Class Construction
         % Constructor

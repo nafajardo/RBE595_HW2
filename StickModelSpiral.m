@@ -7,7 +7,6 @@ clear all
 
 OuterDiameter = 4;
 InnerDiameter = 3;
-nHeight = 5;
 nWidth = 3;
 nDist = 2;
 notch1 = Notch(5, nWidth, 0, nDist);
